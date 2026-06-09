@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+    --color-brand-dark-red: #6B1A1A;
+    --color-brand-yellow: #E8C84A;
+    --color-brand-red: #CB2F2F;
+    --color-text-light: #f5f0e8;
+    --color-text-gold: #c9a96e;
+
+    --font-heading: var(--font-cinzel);
+    --font-body: var(--font-lato);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Speckle effect — mimics the subtle dot texture on the hero background */
+.speckled {
+    background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.20) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.12) 1.5px, transparent 1.5px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.06) 2px, transparent 2px);
+    background-size:
+        43px 67px,
+        71px 53px,
+        29px 41px,
+        61px 37px,
+        83px 71px;
+    background-position:
+        0 0,
+        17px 29px,
+        7px 13px,
+        31px 44px,
+        53px 19px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--color-brand-dark-red);
+    color: var(--color-text-light);
+    font-family: var(--font-body), sans-serif;
 }
