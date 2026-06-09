@@ -1,9 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from 'react';
 
 const Nav = () => {
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 10);
+        window.addEventListener('scroll', onScroll);
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
     return (
         <nav
-            className='w-full flex items-center justify-between px-8 py-4 bg-brand-dark-red'
+            className={`sticky top-0 z-50 w-full flex items-center justify-between px-8 py-4 bg-brand-dark-red speckled transition-shadow duration-300 ${scrolled ? "shadow-[0_4px_20px_rgba(0,0,0,0.5)]" : ""}`}
         
         >
             {/* Left: page links */}
@@ -14,10 +25,10 @@ const Nav = () => {
                 <Link href="/shop" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
                     Shop
                 </Link>
-                <a href="#testimonials" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
+                <a href="/#testimonials" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
                     Testimonials
                 </a>
-                <a href="#contact" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
+                <a href="/#contact" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
                     Contact
                 </a>
             </div>
