@@ -1,5 +1,8 @@
-import Nav from "@/components/Nav";
-import Hero from "@/components/Hero";
+import Nav from "@/components/Nav"
+import Hero from "@/components/Hero"
+import Welcome from "@/components/Welcome";
+import Testimonials from '@/components/Testimonials';
+import MoreFromAuthor from '@/components/MoreFromAuthor';
 
 const Home = () => {
     return (
@@ -8,6 +11,9 @@ const Home = () => {
             <main>
                 <Nav />
                 <Hero />
+                <Welcome />
+                <Testimonials />
+                <MoreFromAuthor />
             </main>
         </>
 

@@ -5,7 +5,7 @@ const Hero = () => {
     <section>
 
       {/* Title block */}
-      <div className="w-full min-h-screen flex flex-col items-center justify-center px-8 py-16">
+      <div className="w-full min-h-[50vh] flex flex-col items-center justify-center px-8 py-16">
         <p className="italic text-lg tracking-widest mb-8 text-text-gold">
           Official Website of
         </p>
