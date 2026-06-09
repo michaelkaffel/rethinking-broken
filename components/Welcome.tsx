@@ -46,7 +46,7 @@ const Welcome = () => {
 
                     <div className='absolute w-80 h-80 rounded-full bg-brand-yellow opacity-10 blur-3xl' />
 
-                    <div className='relative w-full max-w-sm aspect-[3/4]'>
+                    <div className='relative w-full max-w-sm aspect-3/4'>
                         <Image 
                             src="/book-cover.png"
                             alt="Rethinking Broken — 3D book cover"

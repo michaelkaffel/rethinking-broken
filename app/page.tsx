@@ -3,6 +3,9 @@ import Hero from "@/components/Hero"
 import Welcome from "@/components/Welcome";
 import Testimonials from '@/components/Testimonials';
 import MoreFromAuthor from '@/components/MoreFromAuthor';
+import NewsletterSignup from '@/components/NewsletterSignup';
+import Contact from '@/components/Contact';
+import Footer from '@/components/Footer';
 
 const Home = () => {
     return (
@@ -14,6 +17,9 @@ const Home = () => {
                 <Welcome />
                 <Testimonials />
                 <MoreFromAuthor />
+                <NewsletterSignup />
+                <Contact />
+                <Footer />
             </main>
         </>
 
