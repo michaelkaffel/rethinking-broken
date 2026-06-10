@@ -8,7 +8,7 @@ Vercel serverless functions have a **4.5 MB response size limit** and **10-secon
 
 **Solution: Cloudflare R2 Presigned URLs**
 
-The download link redirects **directly to Cloudflare R2**, bypassing Vercel entirely. Vercel only generates the signed URL (a tiny API call) — it never touches the file bytes.
+The download link redirects **directly to Cloudflare R2**, bypassing Vercel entirely. Vercel only generates the signed URL — it never touches the file bytes.
 
 ```
 User clicks Download
@@ -29,21 +29,40 @@ File downloads at full CDN speed
 
 ---
 
+## Product Pages
+
+| Route | Component | Notes |
+|---|---|---|
+| `/shop/book` | `app/shop/book/page.tsx` | Client component — paperback/hardcover toggle via `useState` |
+| `/shop/ebook` | `app/shop/ebook/page.tsx` | Server component |
+| `/shop/audiobook` | `app/shop/audiobook/page.tsx` | Server component |
+
+**Shared component:** `components/BuyNowButton.tsx` — client component that POSTs to `/api/checkout` with a `priceId` and redirects to the returned Stripe Checkout URL. Handles loading and error states.
+
+**Placeholder Price IDs** — replace with real Stripe Price IDs once created in the Stripe dashboard:
+- `price_PAPERBACK_ID` in `app/shop/book/page.tsx`
+- `price_HARDCOVER_ID` in `app/shop/book/page.tsx`
+- `price_EBOOK_ID` in `app/shop/ebook/page.tsx`
+- `price_AUDIOBOOK_ID` in `app/shop/audiobook/page.tsx`
+
+---
+
 ## Purchase Flows
 
 ### Digital Products (eBook / Audiobook)
 
 ```
-1. Customer checks out → Stripe hosted checkout page
-2. Stripe payment succeeds
-3. Stripe fires webhook → /api/webhooks/stripe
-4. Webhook handler:
+1. Customer clicks Buy Now → POST /api/checkout { priceId }
+2. /api/checkout creates Stripe Checkout Session → returns { url }
+3. Browser redirects to Stripe hosted checkout
+4. Payment succeeds → Stripe fires webhook → /api/webhooks/stripe
+5. Webhook handler:
    a. Creates order record in Supabase
    b. Generates download token (UUID) with 30-day expiry
-   c. Sends Email 1: Order Confirmation (order #, items, price, customer info)
-   d. Sends Email 2: Download Link (token URL, expiry date, download button)
-5. Stripe redirects customer to /thank-you?session_id={id}
-6. Thank-you page calls /api/order?session_id={id}
+   c. Sends Email 1: Order Confirmation
+   d. Sends Email 2: Download Link (token URL + expiry date)
+6. Stripe redirects customer to /thank-you?session_id={id}
+7. Thank-you page calls /api/order?session_id={id}
    → Returns order info + download URL
    → Shows order summary + Download button
 ```
@@ -51,18 +70,19 @@ File downloads at full CDN speed
 ### Physical Books (Paperback / Hardcover)
 
 ```
-1. Customer checks out → Stripe hosted checkout page
-2. Stripe payment succeeds
-3. Stripe fires webhook → /api/webhooks/stripe
-4. Webhook handler:
+1. Customer selects format → clicks Buy Now → POST /api/checkout { priceId }
+2. /api/checkout creates Stripe Checkout Session → returns { url }
+3. Browser redirects to Stripe hosted checkout
+4. Payment succeeds → Stripe fires webhook → /api/webhooks/stripe
+5. Webhook handler:
    a. Creates order record in Supabase
    b. Sends Email 1: Order Confirmation to customer
-   c. Sends notification email to owner: name, address, book type, qty
-5. Stripe redirects to /thank-you?session_id={id}
-6. Thank-you page shows order summary (no download button)
+   c. Sends notification email to owner: name, address, format, qty
+6. Stripe redirects to /thank-you?session_id={id}
+7. Thank-you page shows order summary (no download button)
 ```
 
-> **Key principle:** The webhook is the source of truth — not the redirect. Emails and tokens always originate from the webhook, never from the thank-you page load.
+> **Key principle:** The webhook is the source of truth. Emails and tokens always originate from the webhook, never from the thank-you page load.
 
 ---
 
@@ -73,7 +93,7 @@ File downloads at full CDN speed
 - **Content:** Order #, date, items, pricing breakdown, customer info
 - **From:** `orders@rethinkingbroken.com` via Resend
 
-### Email 2 — Download Link (digital products only)
+### Email 2 — Download Link (digital only)
 - **Subject:** `Your download link is ready (#XXXXX)`
 - **Content:** Order #, product image, Download button, expiry date
 - **Body note:** *"Links are valid for 30 days"*
@@ -85,14 +105,13 @@ File downloads at full CDN speed
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/checkout` | POST | Creates Stripe Checkout Session, returns URL |
+| `/api/checkout` | POST | Creates Stripe Checkout Session, returns `{ url }` |
 | `/api/webhooks/stripe` | POST | Handles `checkout.session.completed` event |
 | `/api/order` | GET | Returns order info by `session_id` for thank-you page |
 | `/api/download` | GET | Validates token, redirects to R2 presigned URL |
 
 ### The one Stripe event you care about
 ```javascript
-// In /api/webhooks/stripe
 if (event.type === 'checkout.session.completed') {
   const session = event.data.object
   if (session.payment_status === 'paid') {
@@ -120,8 +139,8 @@ CREATE TABLE download_tokens (
 When `/api/download?token=<uuid>` is called:
 1. Look up token in DB
 2. Check `expires_at` — return 410 Gone if expired
-3. Generate a **short-lived R2 presigned URL** (15 min — the token is the long-lived credential)
-4. Increment `used_count` (audit only — re-downloads within 30 days are allowed)
+3. Generate a **short-lived R2 presigned URL** (15 min)
+4. Increment `used_count` (audit only — re-downloads within 30 days allowed)
 5. 302 redirect to presigned URL
 
 ---
@@ -154,7 +173,6 @@ CREATE TABLE orders (
                       (START WITH 11000),
   customer_email      text,
   customer_name       text,
-  customer_phone      text,
   product_type        text,  -- 'paperback'|'hardcover'|'ebook'|'audiobook'
   amount_total        integer,  -- in cents
   shipping_address    jsonb  -- physical orders only
@@ -180,7 +198,7 @@ CREATE TABLE download_tokens (
 - [ ] R2 bucket is **fully private** — zero public access configured
 - [ ] All download links are server-generated presigned URLs — never a static R2 path
 - [ ] Download tokens are UUIDs — not derived from any order data
-- [ ] Presigned URLs are short-lived (15 min) even though tokens are valid 30 days
+- [ ] Presigned URLs short-lived (15 min) even though tokens are valid 30 days
 - [ ] `/admin` protected by middleware checking `ADMIN_SECRET`
 - [ ] All secrets in Vercel environment variables — never in Git
 - [ ] `.env.local` in `.gitignore` from day one

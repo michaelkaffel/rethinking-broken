@@ -11,12 +11,12 @@ const formats = [
     {
         label: "Paperback",
         price: "$19.99",
-        priceId: "price_PAPERBACK_ID", // TODO: replace with Stripe Price ID
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PAPERBACK!,
     },
     {
         label: "Hardcover",
         price: "$28.99",
-        priceId: "price_HARDCOVER_ID", // TODO: replace with Stripe Price ID
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_HARDCOVER!,
     },
 ];
 
