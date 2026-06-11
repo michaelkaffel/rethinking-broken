@@ -38,16 +38,14 @@ const ShopPage = () => {
             <main>
                 <Nav />
 
-                <section className='relative z-10 py-20 px-8 lg:px-16'>
-                    <div className='max-w-7xl mx-auto'>
-
-                        <div className='relative w-full h-56 overflow-hidden mb-24'>
+                <div className='relative mt-10 z-10 w-full h-64 overflow-hidden'>
                             <Image 
                                 src='/hero-banner.png'
                                 alt='Rethinking Broken bookstore'
                                 fill
                                 className='object-cover object-top'
                                 priority
+                                sizes='100vw'
                             />
                             <div className='absolute inset-0 bg-black/30 flex items-center justify-center'>
                                 <h1 className='font-heading text-5xl text-brand-yellow tracking-wide'>
@@ -56,6 +54,8 @@ const ShopPage = () => {
                             </div>
                         </div>
 
+                <section className='relative z-10 py-20 px-8 lg:px-16'>
+                    <div className='max-w-7xl mx-auto'>
                         <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
                             {products.map((p) => (
                                 <div
@@ -69,7 +69,10 @@ const ShopPage = () => {
                                             src={p.image}
                                             alt={p.alt}
                                             fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             className='object-cover transition-transform duration-500 hover:scale-105'
+                                            priority={p.id === 'book'}
+                                            loading={p.id === 'book' ? undefined : 'eager'}
                                         />
                                     </Link>
 

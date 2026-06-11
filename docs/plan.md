@@ -6,20 +6,25 @@
 
 ```
 / (home)
-  ├── Hero section
-  ├── About / Book section
-  ├── #testimonials  ← anchor
-  └── #contact       ← anchor
+  ├── Hero
+  ├── Welcome (book intro + CTA)
+  ├── Testimonials (#testimonials anchor)
+  ├── More from the Author
+  ├── Upcoming Events
+  ├── Newsletter Signup
+  ├── Contact (#contact anchor)
+  └── Footer
 
 /shop
-  ├── Paperback
-  ├── Hardcover
-  ├── eBook (PDF)
-  └── Audiobook (ZIP)
+  ├── /shop/book        (Paperback / Hardcover toggle)
+  ├── /shop/ebook
+  └── /shop/audiobook
 
 /thank-you?session_id={stripe_session_id}
   ├── Order summary
   └── Download button (digital products only)
+
+/admin                  (password protected)
 ```
 
 ---
@@ -39,35 +44,29 @@ Total fixed monthly cost: **$0**
 
 ---
 
-## Pre-Flight: Before Writing Any Code
+## Pre-Flight Checklist
 
-- [x] **Domain transfer initiated (Jun 8)** — Wix → Namecheap transfer paid and in progress (order #204754364, $11.68). Expected completion Jun 13-15. Note: Direct Wix → Cloudflare transfer is not supported; Namecheap is the intermediary. After 60 days Namecheap → Cloudflare is optional — Cloudflare DNS/R2/CDN all work immediately after pointing nameservers, regardless of who holds the registration.
-- [ ] **On transfer completion (~Jun 13-15)** — Point Namecheap nameservers to Cloudflare. Do NOT touch DNS records yet — just nameservers. Wix site stays live.
-- [ ] **Cancel Wix Premium before Jun 27** — Wix Business plan renews Jun 27 (~$35). New site must be live and DNS flipped to Vercel before then. Email Marketing is already auto-renew OFF. Domain registration at Wix renews Nov 10 — irrelevant since we're transferring away.
-- [ ] **Resend domain verification** — add Resend's DNS records to Cloudflare so emails send from `@rethinkingbroken.com`. Do this early — DNS propagation takes time.
-- [ ] **Stripe account** — confirm access, create 4 products, note each Price ID before building the checkout route.
-- [ ] **Stripe CLI** — install locally for webhook testing during development (`stripe listen --forward-to localhost:3000/api/webhooks/stripe`).
-- [ ] **Cloudflare R2 bucket** — create it, set to private, upload both files, note bucket name and endpoint.
-- [ ] **Supabase project** — create it, run schema SQL, copy connection string.
-- [ ] **Phone number decision** — Stripe Checkout can optionally collect it. Current Wix flow does collect it. Decide yes/no before building the checkout session.
-- [ ] **Tax awareness** — digital goods have sales tax obligations in some US states and countries. Stripe Tax can automate this but costs extra. Be aware as volume grows.
-- [ ] **Order number continuity** — current Wix orders are at ~#10024. Set Supabase sequence to start at 11000: `ALTER SEQUENCE orders_order_number_seq RESTART WITH 11000;`
+- [x] **Domain transfer initiated (Jun 8)** — Wix → Namecheap in progress (order #204754364, $11.68). Expected completion Jun 13-15. Direct Wix → Cloudflare not supported; Namecheap is intermediary. After 60 days, Namecheap → Cloudflare optional — Cloudflare DNS/R2/CDN work immediately after pointing nameservers.
+- [ ] **On transfer completion (~Jun 13-15)** — Point Namecheap nameservers to Cloudflare. Do NOT touch DNS records yet. Wix site stays live.
+- [ ] **Cancel Wix Premium before Jun 27** — Wix Business plan renews Jun 27 (~$35). New site must be live and DNS flipped to Vercel before then.
+- [ ] **Resend domain verification** — add Resend's DNS records to Cloudflare so emails send from `@rethinkingbroken.com`. Do early — DNS propagation takes time.
+- [x] **Stripe account** — fresh account created (separate from old Wix-linked account). 4 products created in test mode, Price IDs in `.env.local`. Shipping rate created: $4.99 flat rate Media Mail (US only).
+- [x] **Stripe CLI** — installed, `stripe listen --forward-to localhost:3000/api/webhooks/stripe` confirmed working.
+- [ ] **Cloudflare R2 bucket** — create, set to private, upload both files, note bucket name and endpoint.
+- [x] **Supabase project** — created under "Down by the River Development" org. Schema run. `orders` starts at #11000.
+- [x] **Phone number** — decided: Stripe Checkout will NOT collect phone number.
+- [ ] **Tax awareness** — digital goods have sales tax obligations in some US states. Stripe Tax can automate this but costs extra. Be aware as volume grows.
 
 ---
 
 ## SEO Migration Checklist
 
-### Before writing any code
+### Before DNS cutover
 - [ ] Crawl rethinkingbroken.com with Screaming Frog (free ≤500 URLs) — export all URLs, titles, meta descriptions
 - [ ] Export Google Search Console top pages & queries
-- [ ] Note exact Wix URL slugs
-
-### During build
-- [ ] Match all existing URL paths exactly
-- [ ] Next.js Metadata API for every page (title, description, OG tags)
-- [ ] `next-sitemap` for `sitemap.xml` + `robots.txt`
-- [ ] `next/image` for all images (Core Web Vitals impact)
-- [ ] 301 redirects in `next.config.js` for any URLs that must change
+- [ ] Add per-page metadata (title, description, OG tags) using Next.js Metadata API
+- [ ] Install and configure `next-sitemap` for `sitemap.xml` + `robots.txt`
+- [ ] Add 301 redirects in `next.config.js` for any URL changes
 
 ### On launch
 - [ ] Keep Wix live until DNS cutover
@@ -78,15 +77,22 @@ Total fixed monthly cost: **$0**
 
 ## Build Order
 
-1. Next.js project scaffold + Vercel deploy + custom domain (DNS not yet switched)
-2. Home page — visual match to current site, all anchor links working
-3. Metadata, OG tags, `next-sitemap`
-4. Stripe: create 4 products in dashboard, build `/api/checkout` route
-5. Supabase: run schema, build webhook handler `/api/webhooks/stripe`
-6. Cloudflare R2: upload files, configure CORS, build `/api/download` route
-7. Resend: order confirmation email template + download link email template
-8. Thank-you page with conditional download button
-9. `/admin` route with resend-link capability
-10. Full end-to-end test all 4 products in **Stripe test mode**
-11. SEO audit: crawl new site vs. old
-12. DNS cutover → submit sitemap → monitor
+### ✅ Completed
+1. Next.js project scaffold + GitHub + Vercel deploy
+2. Home page — all sections built (Hero, Welcome, Testimonials, MoreFromAuthor, UpcomingEvents, NewsletterSignup, Contact, Footer)
+3. Shop page — product grid with full-bleed banner, linked product cards
+4. Product pages — `/shop/book` (with format toggle), `/shop/ebook`, `/shop/audiobook`
+5. Shared components — Nav (sticky, scroll shadow, social icons hidden on mobile), Footer (privacy modal), BuyNowButton
+6. Stripe — 4 products + shipping rate in dashboard, Price IDs wired to product pages, `/api/checkout` built and tested. Physical products collect US shipping address + $4.99 Media Mail flat rate.
+7. Supabase — schema run (`orders` + `download_tokens`), `/api/webhooks/stripe` built and tested. Orders confirmed landing in DB. Download tokens generated for digital products.
+
+### 🔲 Up Next
+8. Cloudflare R2: upload files, configure CORS, build `/api/download`
+9. Resend: order confirmation + download link email templates
+10. Thank-you page with conditional download button
+11. `/admin` route with order lookup and resend-link capability
+12. Newsletter Signup API route (Resend audience)
+13. Per-page SEO metadata + `next-sitemap`
+14. Full end-to-end test in **Stripe test mode**
+15. SEO audit: crawl new site vs. old
+16. DNS cutover → submit sitemap → monitor → cancel Wix

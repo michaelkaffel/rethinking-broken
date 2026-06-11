@@ -51,6 +51,7 @@ const Welcome = () => {
                             src="/book-cover.png"
                             alt="Rethinking Broken — 3D book cover"
                             fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
                             className='object-contain drop-shadow-2xl'
                         />
                     </div>
