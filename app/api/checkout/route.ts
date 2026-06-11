@@ -49,6 +49,9 @@ export const POST = async (req: NextRequest) => {
                 shipping_address_collection: {
                     allowed_countries: ['US'],
                 },
+                shipping_options: [
+                    { shipping_rate: process.env.STRIPE_SHIPPING_RATE_ID! },
+                ],
             }),
 
             metadata: {

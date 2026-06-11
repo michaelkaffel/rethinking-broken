@@ -47,6 +47,7 @@ const BookPage = () => {
                                     fill
                                     className='object-contain drop-shadow-2xl'
                                     priority
+                                    sizes="(max-width: 768px) 100vw, 50vw"
                                 />
                             </div>
 

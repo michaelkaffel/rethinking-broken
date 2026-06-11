@@ -31,6 +31,7 @@ const EbookPage = () => {
                                     fill
                                     className='object-contain drop-shadow-2xl'
                                     priority
+                                    sizes="(max-width: 768px) 100vw, 50vw"
                                 />
                                 
                             </div>
@@ -61,7 +62,7 @@ const EbookPage = () => {
                                     $14.99
                                 </p>
 
-                                <BuyNowButton priceId='price_EBOOK_ID' />
+                                <BuyNowButton priceId={process.env.STRIPE_PRICE_AUDIOBOOK!} />
 
                                 <div className='flex items-center gap-3 mt-8'>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5 text-text-gold">

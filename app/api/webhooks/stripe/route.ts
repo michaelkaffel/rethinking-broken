@@ -59,14 +59,14 @@ async function handlePaidOrder(session: Stripe.Checkout.Session) {
             customer_name: session.customer_details?.name ?? null,
             product_type: productType,
             amount_total: session.amount_total,
-            shipping_address: session.shipping_details?.address ?? null,
+            shipping_address: (session as any).shipping_details?.address ?? null,
         })
         .select()
         .single()
 
     if (orderError) {
         if (orderError.code === '23505') {
-            console.log('[webhook] Alreadty processed, skipping', session.tax_id_collection);
+            console.log('[webhook] Already processed, skipping', session.id);
             return
         }
         throw orderError
@@ -87,7 +87,7 @@ async function handlePaidOrder(session: Stripe.Checkout.Session) {
 
         if (tokenError) throw tokenError;
 
-        console.log('[webhook] Download token created: ${tokenRow.token');
+        console.log(`[webhook] Download token created: ${tokenRow.token}`);
 
         // (step 9): send order confirmation email via Resend
         // (step 9): send download link email via Resend
