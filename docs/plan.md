@@ -50,13 +50,12 @@ Total fixed monthly cost: **$0**
 - [ ] **On transfer completion (~Jun 13-15)** — Point Namecheap nameservers to Cloudflare. Do NOT touch DNS records yet. Wix site stays live.
 - [ ] **Cancel Wix Premium before Jun 27** — Wix Business plan renews Jun 27 (~$35). New site must be live and DNS flipped to Vercel before then.
 - [ ] **Resend domain verification** — add Resend's DNS records to Cloudflare so emails send from `@rethinkingbroken.com`. Do early — DNS propagation takes time.
-- [ ] **Stripe account** — confirm access, create 4 products (paperback, hardcover, ebook, audiobook), note each Price ID.
-- [ ] **Stripe CLI** — install locally (`stripe listen --forward-to localhost:3000/api/webhooks/stripe`).
+- [x] **Stripe account** — fresh account created (separate from old Wix-linked account). 4 products created in test mode, Price IDs in `.env.local`. Shipping rate created: $4.99 flat rate Media Mail (US only).
+- [x] **Stripe CLI** — installed, `stripe listen --forward-to localhost:3000/api/webhooks/stripe` confirmed working.
 - [ ] **Cloudflare R2 bucket** — create, set to private, upload both files, note bucket name and endpoint.
-- [ ] **Supabase project** — create, run schema SQL, copy connection string.
-- [ ] **Phone number** — decided: Stripe Checkout will NOT collect phone number.
+- [x] **Supabase project** — created under "Down by the River Development" org. Schema run. `orders` starts at #11000.
+- [x] **Phone number** — decided: Stripe Checkout will NOT collect phone number.
 - [ ] **Tax awareness** — digital goods have sales tax obligations in some US states. Stripe Tax can automate this but costs extra. Be aware as volume grows.
-- [ ] **Order number continuity** — Wix orders currently at ~#10024. Set Supabase sequence to start at 11000: `ALTER SEQUENCE orders_order_number_seq RESTART WITH 11000;`
 
 ---
 
@@ -81,13 +80,13 @@ Total fixed monthly cost: **$0**
 ### ✅ Completed
 1. Next.js project scaffold + GitHub + Vercel deploy
 2. Home page — all sections built (Hero, Welcome, Testimonials, MoreFromAuthor, UpcomingEvents, NewsletterSignup, Contact, Footer)
-3. Shop page — product grid with banner, linked product cards
+3. Shop page — product grid with full-bleed banner, linked product cards
 4. Product pages — `/shop/book` (with format toggle), `/shop/ebook`, `/shop/audiobook`
-5. Shared components — Nav (sticky, scroll shadow), Footer (privacy modal), BuyNowButton
+5. Shared components — Nav (sticky, scroll shadow, social icons hidden on mobile), Footer (privacy modal), BuyNowButton
+6. Stripe — 4 products + shipping rate in dashboard, Price IDs wired to product pages, `/api/checkout` built and tested. Physical products collect US shipping address + $4.99 Media Mail flat rate.
+7. Supabase — schema run (`orders` + `download_tokens`), `/api/webhooks/stripe` built and tested. Orders confirmed landing in DB. Download tokens generated for digital products.
 
 ### 🔲 Up Next
-6. Stripe: create products in dashboard, replace placeholder Price IDs, build `/api/checkout`
-7. Supabase: run schema, build `/api/webhooks/stripe`
 8. Cloudflare R2: upload files, configure CORS, build `/api/download`
 9. Resend: order confirmation + download link email templates
 10. Thank-you page with conditional download button
