@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { sendDownloadEmail, sendShippingNotification } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -26,7 +27,7 @@ export const POST = async (req: NextRequest) => {
             process.env.STRIPE_WEBHOOK_SECRET!
         );
     } catch (err) {
-        console.error('[webook] Signature verification failed:', err);
+        console.error('[webhook] Signature verification failed:', err);
         return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     };
 
@@ -44,7 +45,7 @@ export const POST = async (req: NextRequest) => {
         }
     }
 
-    return NextResponse.json({ recieved: true })
+    return NextResponse.json({ received: true })
 };
 
 async function handlePaidOrder(session: Stripe.Checkout.Session) {
@@ -59,10 +60,11 @@ async function handlePaidOrder(session: Stripe.Checkout.Session) {
             customer_name: session.customer_details?.name ?? null,
             product_type: productType,
             amount_total: session.amount_total,
-            shipping_address: (session as any).shipping_details?.address ?? null,
+            shipping_address: (session as any).collected_information?.shipping_details?.address ?? null,
         })
         .select()
         .single()
+
 
     if (orderError) {
         if (orderError.code === '23505') {
@@ -89,11 +91,27 @@ async function handlePaidOrder(session: Stripe.Checkout.Session) {
 
         console.log(`[webhook] Download token created: ${tokenRow.token}`);
 
-        // (step 9): send order confirmation email via Resend
-        // (step 9): send download link email via Resend
-        // downloadUrl = `${origin}/api/download?token=${tokenRow.token}`
+        const downloadUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/download?token=${tokenRow.token}`;
+
+        await sendDownloadEmail({
+            to: session.customer_details?.email!,
+            customerName: session.customer_details?.name ?? 'there',
+            orderNumber: order.order_number,
+            productType,
+            downloadUrl,
+            expiresAt: new Date(tokenRow.expires_at),
+        })
+
+        console.log(`[webhook] Download email sent to ${session.customer_details?.email}`);
     } else {
-        // (step 9): send order confirmation email to customer via Resend
-        // (step 9): send fulfillment notification email to Owl via Resend
+        await sendShippingNotification({
+            customerName: session.customer_details?.name ?? 'Customer',
+            customerEmail: session.customer_details?.email!,
+            orderNumber: order.order_number,
+            productType,
+            shippingAddress: (session as any).collected_information?.shipping_details?.address ?? {},
+        })
+
+        console.log(`[webhook] Shipping notification sent for order #${order.order_number}`)
     }
 }
