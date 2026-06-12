@@ -82,6 +82,8 @@ File downloads at full CDN speed
 
 > **Key principle:** The webhook is the source of truth. Emails and tokens always originate from the webhook, never from the thank-you page load.
 
+Stripe API 2026-05-27.dahlia — shipping address moved to session.collected_information.shipping_details.address
+
 ---
 
 ## Shipping
@@ -96,16 +98,8 @@ File downloads at full CDN speed
 
 ## Email Templates
 
-### Email 1 — Order Confirmation (all products)
-- **Subject:** `Your order is confirmed (#XXXXX)`
-- **Content:** Order #, date, items, pricing breakdown, customer info
-- **From:** `orders@rethinkingbroken.com` via Resend
-
-### Email 2 — Download Link (digital only)
-- **Subject:** `Your download link is ready (#XXXXX)`
-- **Content:** Order #, product image, Download button, expiry date
-- **Body note:** *"Links are valid for 30 days"*
-- **From:** `orders@rethinkingbroken.com` via Resend
+-Download Link email (digital only) — subject: Your download link is ready (#XXXXX), sent from lib/email.ts → sendDownloadEmail
+-Shipping notification (physical only) — subject: New order to ship — #XXXXX (Format), sent to OWL_NOTIFICATION_EMAIL + MY_NOTIFICATION_EMAIL
 
 ---
 
@@ -147,7 +141,7 @@ CREATE TABLE download_tokens (
 When `/api/download?token=<uuid>` is called:
 1. Look up token in DB
 2. Check `expires_at` — return 410 Gone if expired
-3. Generate a **short-lived R2 presigned URL** (15 min)
+3. Generate a **short-lived R2 presigned URL** (15 min) with `ResponseContentDisposition: attachment; filename="Rethinking-Broken-{type}.{ext}"` to force download (not inline display)
 4. Increment `used_count` (audit only — re-downloads within 30 days allowed)
 5. 302 redirect to presigned URL
 
@@ -202,10 +196,10 @@ CREATE TABLE download_tokens (
 
 - [x] `STRIPE_SECRET_KEY` only in server-side API routes — never in client components or `NEXT_PUBLIC_` vars
 - [x] Webhook handler verifies Stripe signature with `stripe.webhooks.constructEvent()`
-- [ ] R2 bucket is **fully private** — zero public access configured
-- [ ] All download links are server-generated presigned URLs — never a static R2 path
+- [x] R2 bucket is **fully private** — Public Access: Disabled confirmed in dashboard
+- [x] All download links are server-generated presigned URLs — never a static R2 path
 - [x] Download tokens are UUIDs — not derived from any order data
-- [ ] Presigned URLs short-lived (15 min) even though tokens are valid 30 days
+- [x] Presigned URLs short-lived (15 min) even though tokens are valid 30 days
 - [ ] `/admin` protected by middleware checking `ADMIN_SECRET`
 - [x] All secrets in `.env.local` — never in Git
 - [x] `.env.local` in `.gitignore` from day one
@@ -250,8 +244,10 @@ R2_AUDIOBOOK_KEY=rethinking-broken-audiobook.zip
 
 # Resend
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=orders@rethinkingbroken.com
-OWNER_NOTIFICATION_EMAIL=your@email.com
+RESEND_FROM_EMAIL=onboarding@resend.dev   # swap to orders@rethinkingbroken.com after domain verified
+OWL_NOTIFICATION_EMAIL=owlchrysalismedicine@gmail.com
+MY_NOTIFICATION_EMAIL=michaelk.ocm@gmail.com
+NEXT_PUBLIC_SITE_URL=https://rethinking-broken.vercel.app  # swap to https://rethinkingbroken.com after DNS cutover
 
 # Admin
 ADMIN_SECRET=...  # strong random string
