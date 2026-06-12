@@ -86,13 +86,10 @@ Total fixed monthly cost: **$0**
 6. Stripe — 4 products + shipping rate in dashboard, Price IDs wired to product pages, `/api/checkout` built and tested. Physical products collect US shipping address + $4.99 Media Mail flat rate.
 7. Supabase — schema run (`orders` + `download_tokens`), `/api/webhooks/stripe` built and tested. Orders confirmed landing in DB on both local and deployed site. Download tokens generated for digital products.
 8. Cloudflare R2 — private bucket created, both files uploaded, `/api/download` built and tested. Token validation, expiry check, presigned URL generation (15 min), and `attachment` download confirmed working.
-9. Resend — `lib/email.ts` built with `sendDownloadEmail` (digital) and
-   `sendShippingNotification` (physical → Owl + Michael). Wired into webhook
-   handler. Stripe handles customer receipt. Tested end-to-end locally.
-   Sending from `onboarding@resend.dev` until domain verified post-DNS cutover.
+9. Resend — `lib/email.ts` built and tested. `sendDownloadEmail` (digital) and `sendShippingNotification` (physical) wired into webhook handler. Currently sending from `onboarding@resend.dev` — swap to `orders@rethinkingbroken.com` after domain verified in Resend.
+10. Thank-you page — `/thank-you?session_id=...` and `/api/order` built and tested. Order summary, conditional download button (digital), shipping address block (physical). Polling handles Stripe redirect/webhook race condition. 307 redirect from `/api/download` to R2 confirmed working end-to-end.
 
 ### 🔲 Up Next
-10. Thank-you page with `/api/order` route + conditional download button
 11. `/admin` route with order lookup and resend-link capability
 12. Newsletter Signup API route (Resend audience)
 13. Per-page SEO metadata + `next-sitemap`

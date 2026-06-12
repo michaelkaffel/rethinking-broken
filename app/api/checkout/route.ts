@@ -61,10 +61,10 @@ export const POST = async (req: NextRequest) => {
 
         return NextResponse.json({ url: session.url })
     } catch (err) {
-        console.error('[/api/checkout', err)
+        console.error('[/api/checkout]', err)
         return NextResponse.json(
-            { error: 'Failed ot create checkout session' },
-            {status: 500}
+            { error: 'Failed to create checkout session' },
+            {status: 500 }
         );
     };
 };
