@@ -8,12 +8,39 @@ const NewsletterSignup = () => {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
+    // Client side sanitation
+    const isValidEmailFormat = (val: string) =>
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())
+
+    const clearError = () => { if (status === 'error') setStatus('idle') }
+    
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!firstName.trim() || !lastName.trim() || !isValidEmailFormat(email)) return;
         setStatus('loading');
-        // Wire up Resend audience API todo
-        // For now, simulate success
-        setTimeout(() => setStatus('success'), 800);
+
+        try {
+            const res = await fetch('/api/newsletter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName: firstName.trim(),
+                    lastName: lastName.trim(),
+                    email: email.trim(),
+                }),
+            });
+
+            if (res.ok) {
+                setStatus('success');
+                setFirstName('');
+                setLastName('');
+                setEmail('');
+            } else {
+                setStatus('error');
+            }
+        } catch {
+            setStatus('error')
+        }
     };
 
     return (
@@ -36,7 +63,10 @@ const NewsletterSignup = () => {
                             <input 
                                 type='text'
                                 value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
+                                required
+                                maxLength={100}
+                                autoComplete='given-name'
+                                onChange={(e) => {setFirstName(e.target.value); clearError() }}
                                 className='flex-1 bg-transparent border border-text-gold/20 px-4 py-3 font-body text-text-light placeholder:text-text-light/80 focus:outline-none focus:border-text-gold/60 transition-colors'
                                 placeholder='Your first name'
                             />
@@ -44,8 +74,11 @@ const NewsletterSignup = () => {
                             
                             <input 
                                 type='text'
+                                required
+                                maxLength={100}
+                                autoComplete='family-name'
                                 value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
+                                onChange={(e) => {setLastName(e.target.value); clearError() }}
                                 className='flex-1 bg-transparent border border-text-gold/20 px-4 py-3 font-body text-text-light placeholder:text-text-light/80 focus:outline-none focus:border-text-gold/60 transition-colors'
                                 placeholder='Your last name'
                             />
@@ -54,8 +87,10 @@ const NewsletterSignup = () => {
                             <input 
                                 type='email'
                                 required
+                                maxLength={254}
+                                autoComplete='email'
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => {setEmail(e.target.value); clearError() }}
                                 className='flex-2 bg-transparent border border-text-gold/20 px-4 py-3 font-body text-text-light placeholder:text-text-light/80 focus:outline-none focus:border-text-gold/60 transition-colors'
                                 placeholder='your@email.com'
                             />

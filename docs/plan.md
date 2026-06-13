@@ -89,9 +89,9 @@ Total fixed monthly cost: **$0**
 9. Resend — `lib/email.ts` built and tested. `sendDownloadEmail` (digital) and `sendShippingNotification` (physical) wired into webhook handler. Currently sending from `onboarding@resend.dev` — swap to `orders@rethinkingbroken.com` after domain verified in Resend.
 10. Thank-you page — `/thank-you?session_id=...` and `/api/order` built and tested. Order summary, conditional download button (digital), shipping address block (physical). Polling handles Stripe redirect/webhook race condition. 307 redirect from `/api/download` to R2 confirmed working end-to-end.
 11. Admin panel — `proxy.ts` protects `/admin` routes. `/admin/login` password gate. `/admin` shows all orders by default, filterable by email. Shipping address visible for physical orders. Resend Download button generates fresh token + fires `sendDownloadEmail` for digital orders.
+12. Newsletter signup — `app/api/newsletter/route.ts` built and tested. Accepts first name, last name, email. Server-side sanitization via `lib/sanitize.ts` (`sanitizeEmail` + `sanitizeName`). Adds contact to Resend audience via SDK. Confirmed working end-to-end — contacts landing in Resend Audience dashboard.
 
 ### 🔲 Up Next
-12. Newsletter Signup API route (Resend audience)
 13. Per-page SEO metadata + `next-sitemap`
 14. Final end-to-end test in Stripe test mode
 15. SEO audit: crawl new site vs. old
