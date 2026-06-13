@@ -16,8 +16,24 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-    title: "Rethinking Broken: Overcome Childhood Trauma",
-    description: "Childhood trauma didn't break you, it trained you. Find and use your hard-won skills — you don't need to fix yourself. You're not broken.",
+    metadataBase: new URL(
+        process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rethinkingbroken.com'
+    ),
+    title: {
+        default: 'Rethinking Broken | A Book by Owl Medicine',
+        template: '%s | Rethinking Broken',
+    },
+    description: 'Rethinking Broken by Owl — a healing journey through childhood trauma and the path to wholeness. Available in paperback, hardcover, eBook, and audiobook.',
+    openGraph: {
+        type: 'website',
+        siteName: 'Rethinking Broken',
+        locale: 'en_US',
+        images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Rethinking Broken by Owl' }],
+    },
+    twitter: {
+        card: 'summary_large_image',
+        images: ['/og-image.png']
+    },
 };
 
 

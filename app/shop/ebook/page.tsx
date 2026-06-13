@@ -4,6 +4,17 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import BuyNowButton from '@/components/BuyNowButton';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'eBook',
+    description: 'Rethinking Broken eBook by Owl — instant PDF download. $14.99. Begin reading immediately after purchase.',
+    openGraph: {
+        title: 'eBook — Rethinking Broken',
+        description: 'Instant PDF download. $1499.',
+        url: '/shop/ebook',
+    },
+}
 
 const EbookPage = () => {
 

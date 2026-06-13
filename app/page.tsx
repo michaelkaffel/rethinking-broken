@@ -6,6 +6,17 @@ import MoreFromAuthor from '@/components/MoreFromAuthor';
 import NewsletterSignup from '@/components/NewsletterSignup';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Rethinking Broken | A Book by Owl Medicine',
+    description: 'An honest, healing guide through childhood trauma by Owl. Available in paperback, hardcover, eBook, and audiobook.',
+    openGraph: {
+        title: 'Rethinking Broken | A Book by Owl Medicine',
+        description: 'An honest, healing guide through childhood trauma by Owl.',
+        url: '/',
+    },
+}
 
 const Home = () => {
     return (

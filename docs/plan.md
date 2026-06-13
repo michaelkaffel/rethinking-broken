@@ -64,8 +64,8 @@ Total fixed monthly cost: **$0**
 ### Before DNS cutover
 - [ ] Crawl rethinkingbroken.com with Screaming Frog (free ≤500 URLs) — export all URLs, titles, meta descriptions
 - [ ] Export Google Search Console top pages & queries
-- [ ] Add per-page metadata (title, description, OG tags) using Next.js Metadata API
-- [ ] Install and configure `next-sitemap` for `sitemap.xml` + `robots.txt`
+- [x] Add per-page metadata (title, description, OG tags) using Next.js Metadata API
+- [x] `app/sitemap.ts` + `app/robots.ts` — built-in Next.js generation (no npm package needed)
 - [ ] Add 301 redirects in `next.config.js` for any URL changes
 
 ### On launch
@@ -90,9 +90,9 @@ Total fixed monthly cost: **$0**
 10. Thank-you page — `/thank-you?session_id=...` and `/api/order` built and tested. Order summary, conditional download button (digital), shipping address block (physical). Polling handles Stripe redirect/webhook race condition. 307 redirect from `/api/download` to R2 confirmed working end-to-end.
 11. Admin panel — `proxy.ts` protects `/admin` routes. `/admin/login` password gate. `/admin` shows all orders by default, filterable by email. Shipping address visible for physical orders. Resend Download button generates fresh token + fires `sendDownloadEmail` for digital orders.
 12. Newsletter signup — `app/api/newsletter/route.ts` built and tested. Accepts first name, last name, email. Server-side sanitization via `lib/sanitize.ts` (`sanitizeEmail` + `sanitizeName`). Adds contact to Resend audience via SDK. Confirmed working end-to-end — contacts landing in Resend Audience dashboard.
+13. SEO metadata + sitemap — per-page `metadata` exports on all public pages. `app/sitemap.ts` + `app/robots.ts` (built-in Next.js, no npm package). noindex on `/thank-you` and `/admin/*` via `app/admin/layout.tsx`. OG image at `public/og-image.png`. `/shop/book` split into server wrapper (`page.tsx`) + `components/BookContent.tsx` (client) to allow metadata export.
 
 ### 🔲 Up Next
-13. Per-page SEO metadata + `next-sitemap`
 14. Final end-to-end test in Stripe test mode
 15. SEO audit: crawl new site vs. old
 16. DNS cutover → submit sitemap → monitor → cancel Wix

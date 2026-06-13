@@ -1,5 +1,10 @@
 import { Suspense } from 'react';
 import ThankYouContent from './ThankYouContent';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    robots: { index: false, follow: false },
+}
 
 const LoadingFallback = () => (
     <main className='min-h-screen bg-bg-deep flex items-center justify-center'>
