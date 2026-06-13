@@ -57,8 +57,7 @@ File downloads at full CDN speed
 5. Webhook handler:
    a. Creates order record in Supabase
    b. Generates download token (UUID) with 30-day expiry
-   c. Sends Email 1: Order Confirmation
-   d. Sends Email 2: Download Link (token URL + expiry date)
+   c. Sends download link email via Resend
 6. Stripe redirects customer to /thank-you?session_id={id}
 7. Thank-you page calls /api/order?session_id={id}
    → Returns order info + download URL
@@ -74,15 +73,12 @@ File downloads at full CDN speed
 4. Payment succeeds → Stripe fires webhook → /api/webhooks/stripe
 5. Webhook handler:
    a. Creates order record in Supabase (shipping_address stored as JSONB)
-   b. Sends Email 1: Order Confirmation to customer
-   c. Sends notification email to Owl: name, address, format, qty
+   b. Sends shipping notification to Owl + Michael via Resend
 6. Stripe redirects to /thank-you?session_id={id}
 7. Thank-you page shows order summary (no download button)
 ```
 
 > **Key principle:** The webhook is the source of truth. Emails and tokens always originate from the webhook, never from the thank-you page load.
-
-Stripe API 2026-05-27.dahlia — shipping address moved to session.collected_information.shipping_details.address
 
 ---
 
@@ -98,8 +94,19 @@ Stripe API 2026-05-27.dahlia — shipping address moved to session.collected_inf
 
 ## Email Templates
 
--Download Link email (digital only) — subject: Your download link is ready (#XXXXX), sent from lib/email.ts → sendDownloadEmail
--Shipping notification (physical only) — subject: New order to ship — #XXXXX (Format), sent to OWL_NOTIFICATION_EMAIL + MY_NOTIFICATION_EMAIL
+### Download Link Email (digital only)
+- **Subject:** `Your download link is ready (#XXXXX)`
+- **Sent by:** `lib/email.ts` → `sendDownloadEmail`
+- **From:** `orders@rethinkingbroken.com` via Resend (currently `onboarding@resend.dev` until domain verified)
+
+### Shipping Notification (physical only)
+- **Subject:** `New order to ship — #XXXXX (Format)`
+- **Sent by:** `lib/email.ts` → `sendShippingNotification`
+- **To:** `OWL_NOTIFICATION_EMAIL` + `MY_NOTIFICATION_EMAIL`
+
+### Order Confirmation (all products)
+- Handled automatically by Stripe (Settings → Customer emails → Successful payments: ON)
+- Note: Stripe does not send receipts for test mode charges — works in live mode only
 
 ---
 
@@ -111,6 +118,10 @@ Stripe API 2026-05-27.dahlia — shipping address moved to session.collected_inf
 | `/api/webhooks/stripe` | POST | Handles `checkout.session.completed` event |
 | `/api/order` | GET | Returns order info by `session_id` for thank-you page |
 | `/api/download` | GET | Validates token, redirects to R2 presigned URL |
+| `/api/admin/login` | POST | Validates `ADMIN_SECRET`, sets httpOnly cookie |
+| `/api/admin/logout` | POST | Clears admin cookie |
+| `/api/admin/orders` | GET | Returns all orders or filters by email (`?email=`) |
+| `/api/admin/resend-download` | POST | Generates new token + sends download email |
 
 ### The one Stripe event you care about
 ```javascript
@@ -147,20 +158,27 @@ When `/api/download?token=<uuid>` is called:
 
 ---
 
-## Admin — Link Regeneration
+## Admin Panel
 
-Password-protected page at `/admin`:
+Password-protected at `/admin`. Protected by `proxy.ts` checking `ADMIN_SECRET` cookie.
 
 ```
 /admin
-  └── Search by customer email
-      └── Orders table: order #, date, product, token expiry, used_count
-          └── [Resend Download Email] button
-              → Generates new token (fresh 30-day window)
-              → Sends Email 2 again
+  └── Shows all orders by default (newest first)
+      └── Filter by customer email via search box
+          └── Table: order #, date, customer name/email, product, amount
+              ├── Physical orders: shipping address in Details column
+              └── Digital orders: token status/expiry/used count + [Resend Download Email] button
+                  → Generates new token (fresh 30-day window)
+                  → Calls sendDownloadEmail
 ```
 
-Protected by Next.js middleware checking `ADMIN_SECRET` env variable.
+**Auth flow:**
+- `proxy.ts` matches `/admin/:path*` and `/api/admin/:path*`
+- Exempts `/admin/login` and `/api/admin/login`
+- Checks `admin_token` cookie value against `ADMIN_SECRET`
+- Missing/wrong cookie → redirect to `/admin/login` (pages) or 401 (API routes)
+- Cookie is httpOnly, secure in production, 7-day maxAge
 
 ---
 
@@ -200,7 +218,7 @@ CREATE TABLE download_tokens (
 - [x] All download links are server-generated presigned URLs — never a static R2 path
 - [x] Download tokens are UUIDs — not derived from any order data
 - [x] Presigned URLs short-lived (15 min) even though tokens are valid 30 days
-- [ ] `/admin` protected by middleware checking `ADMIN_SECRET`
+- [x] `/admin` protected by `proxy.ts` checking `ADMIN_SECRET` httpOnly cookie
 - [x] All secrets in `.env.local` — never in Git
 - [x] `.env.local` in `.gitignore` from day one
 - [x] HTTPS automatic on Vercel
@@ -247,10 +265,30 @@ RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL=onboarding@resend.dev   # swap to orders@rethinkingbroken.com after domain verified
 OWL_NOTIFICATION_EMAIL=owlchrysalismedicine@gmail.com
 MY_NOTIFICATION_EMAIL=michaelk.ocm@gmail.com
-NEXT_PUBLIC_SITE_URL=https://rethinking-broken.vercel.app  # swap to https://rethinkingbroken.com after DNS cutover
+
+# Site URL
+NEXT_PUBLIC_SITE_URL=http://localhost:3000  # swap to https://rethinkingbroken.com after DNS cutover
 
 # Admin
-ADMIN_SECRET=...  # strong random string
+ADMIN_SECRET=...  # generate with: openssl rand -hex 32
 ```
 
 All of the above get added to the Vercel dashboard under Environment Variables — never to your repo.
+
+---
+
+## Key Gotchas
+
+- Client components can't read unprefixed `process.env` — `/shop/book` uses `NEXT_PUBLIC_STRIPE_PRICE_*`
+- `req.text()` required for webhook signature verification (not `req.json()`)
+- Vercel needs a separate Stripe webhook endpoint from the local CLI one
+- 827MB audiobook requires AWS CLI + R2 S3-compatible endpoint for upload (browser upload limit is 300MB)
+- `ResponseContentDisposition: attachment` needed on presigned URL to force download vs inline display
+- **Stripe API `2026-05-27.dahlia`** — shipping address is at `session.collected_information.shipping_details.address`, NOT `session.shipping_details.address`
+- `useSearchParams()` requires a Suspense boundary in Next.js App Router — split into server wrapper (`page.tsx`) and client component (`ThankYouContent.tsx`)
+- **Next.js 16** — `middleware.ts` is deprecated, use `proxy.ts` instead (same API, just renamed)
+- **`proxy.ts` must exempt `/api/admin/login`** — otherwise the login POST is blocked before reaching the route handler
+- **Resend sandbox** — only delivers to the Resend account email (`rethinkingbroken@gmail.com`) until domain is verified; all other addresses silently dropped
+- **Stripe test mode receipts** — Stripe does not email receipts for test charges; works in live mode only
+- `NEXT_PUBLIC_SITE_URL` is the env var for the site base URL (used in resend-download route to construct download links)
+- `sendDownloadEmail` expects `expiresAt: Date` — wrap Supabase timestamp string with `new Date(token.expires_at)`
