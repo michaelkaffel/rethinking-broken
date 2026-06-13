@@ -2,6 +2,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Shop',
+    description: 'Buy Rethinking Broken by Owl — paperback, hardcover, eBook PDF, or audiobook ZIP download.',
+    openGraph: {
+        title: 'Shop — Rethinking Broken',
+        description: 'Buy Rethinking Broken by Owl. Choose your format.',
+        url: '/shop'
+    }
+
+}
 
 const products = [
     {

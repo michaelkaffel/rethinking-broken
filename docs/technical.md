@@ -33,7 +33,7 @@ File downloads at full CDN speed
 
 | Route | Component | Notes |
 |---|---|---|
-| `/shop/book` | `app/shop/book/page.tsx` | Client component — paperback/hardcover toggle via `useState` |
+| `/shop/book` | `app/shop/book/page.tsx` + `components/BookContent.tsx` | Server wrapper exports metadata; `BookContent.tsx` (`"use client"`) handles paperback/hardcover toggle via `useState` |
 | `/shop/ebook` | `app/shop/ebook/page.tsx` | Server component |
 | `/shop/audiobook` | `app/shop/audiobook/page.tsx` | Server component |
 
@@ -133,6 +133,62 @@ if (event.type === 'checkout.session.completed') {
   }
 }
 ```
+
+---
+
+## SEO
+
+### Approach
+No npm packages. Next.js App Router has built-in support for all three concerns:
+- **Per-page metadata** — `export const metadata: Metadata = { ... }` in each page file
+- **Sitemap** — `app/sitemap.ts` → served at `/sitemap.xml`
+- **Robots** — `app/robots.ts` → served at `/robots.txt`
+
+### Metadata structure
+
+```
+app/layout.tsx          ← metadataBase + default title template + default description + OG/Twitter defaults
+app/page.tsx            ← home (absolute title — bypasses template)
+app/shop/page.tsx       ← shop index
+app/shop/book/page.tsx  ← book (server wrapper — required so metadata can be exported)
+app/shop/ebook/page.tsx
+app/shop/audiobook/page.tsx
+app/thank-you/page.tsx  ← robots: noindex/nofollow
+app/admin/layout.tsx    ← robots: noindex/nofollow (covers all /admin/* routes)
+```
+
+### Title template
+Set in root layout:
+```typescript
+title: {
+  default: 'Rethinking Broken | A Book by Owl',
+  template: '%s | Rethinking Broken',
+}
+```
+- Pages that set `title: 'Shop'` render as `Shop | Rethinking Broken`
+- Home page sets an absolute string, bypassing the template
+
+### OG image
+Stored at `public/og-image.png` (1200×630px). Wired in root layout:
+```typescript
+openGraph: {
+  images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Rethinking Broken by Owl' }],
+},
+twitter: {
+  card: 'summary_large_image',
+  images: ['/og-image.png'],
+},
+```
+`metadataBase` in root layout resolves `/og-image.png` → `https://rethinkingbroken.com/og-image.png`.
+
+### noindex pages
+`/thank-you` and all `/admin/*` routes are excluded from search engines:
+```typescript
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
+```
+`app/admin/layout.tsx` covers the entire admin section in one file rather than adding noindex to each admin page individually.
 
 ---
 
@@ -321,3 +377,6 @@ All of the above get added to the Vercel dashboard under Environment Variables �
 - `NEXT_PUBLIC_SITE_URL` is the env var for the site base URL (used in resend-download route to construct download links)
 - `sendDownloadEmail` expects `expiresAt: Date` — wrap Supabase timestamp string with `new Date(token.expires_at)`
 - **Resend audience — use the SDK, not raw fetch** — `resend.contacts.create()` handles auth correctly; manually constructing the Authorization header with `fetch` produces intermittent `API key is invalid` errors even with a valid key
+- **`metadata` exports are silently ignored on client components** — Next.js App Router emits no warning; the tags simply don't appear in `<head>`. Fix: split into a server wrapper that exports `metadata` and a client child component that handles interactivity (same pattern as thank-you page and `/shop/book`)
+- **Built-in `app/sitemap.ts` + `app/robots.ts`** replace `next-sitemap` — no npm package needed; Next.js serves them automatically at `/sitemap.xml` and `/robots.txt`
+- **`metadataBase` required in root layout** — without it, relative paths like `/og-image.png` in `openGraph.images` are not resolved to a full URL and OG scrapers silently skip the image

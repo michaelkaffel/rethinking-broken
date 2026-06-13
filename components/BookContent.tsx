@@ -1,22 +1,27 @@
+"use client";
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import BuyNowButton from '@/components/BuyNowButton';
-import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-    title: 'Audiobook',
-    description: 'Rethinking Broken audiobook by Owl — full ZIP download. $21.99. Listen on any device.',
-    openGraph: {
-        title: 'Audiobook — Rethinking Broken',
-        description: 'Full ZIP download. $21.99',
-        url: '/shop/audiobook,'
+const formats = [
+    {
+        label: "Paperback",
+        price: "$19.99",
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PAPERBACK!,
     },
-}
+    {
+        label: "Hardcover",
+        price: "$28.99",
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_HARDCOVER!,
+    },
+];
 
-const EbookPage = () => {
+const BookContent = () => {
+    const [selected, setSelected] = useState(0);
 
     return (
         <>
@@ -37,19 +42,17 @@ const EbookPage = () => {
                             {/* Image — top on mobile, right on desktop */}
                             <div className='relative w-full aspect-3/4 lg:order-last'>
                                 <Image
-                                    src='/audiobook-cover.png'
-                                    alt='Rethinking Broken audiobook'
+                                    src='/book-cover.png'
+                                    alt='Rethinking Broken book cover'
                                     fill
                                     className='object-contain drop-shadow-2xl'
                                     priority
                                     sizes="(max-width: 768px) 100vw, 50vw"
                                 />
-                                
                             </div>
 
                             {/* Details — below image on mobile, left on desktop */}
                             <div className='lg:order-first'>
-
                                 <p className='font-body text-text-light/50 text-lg mb-6'>
                                     Childhood Trauma Didn&apos;t Break You
                                 </p>
@@ -67,26 +70,36 @@ const EbookPage = () => {
                                     Offering more than inspiration — this book provides the tools and strategies you need to reclaim your power, re-write your narrative, and re-shape your future. Your roadmap awaits within these pages.
                                 </p>
 
-                                
-                                
-                                <p className='font-heading text-3xl text-brand-yellow mb-8'>
-                                    $14.99
+                                <p className='font-body text-text-light/50 text-sm mb-3'>
+                                    Format
                                 </p>
-
-                                <BuyNowButton priceId={process.env.STRIPE_PRICE_AUDIOBOOK!} />
-
-                                <div className='flex items-center gap-3 mt-8'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5 text-text-gold">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                    </svg>
-                                    <span className='font-body text-text-light/80 text-sm'>
-                                        Download link delivered by email immediately after purchase. Unzip and add to your preferred audio player.
-                                    </span>
+                                <div className='flex gap-3 mb-8'>
+                                    {formats.map((f, i) => (
+                                        <button
+                                            key={f.label}
+                                            onClick={() => setSelected(i)}
+                                            className={`px-6 py-2 font-heading text-sm tracking-widest border transition-colors duration-200 ${selected === i
+                                                ? "bg-brand-yellow text-black border-brand-yellow"
+                                                : "border-text-gold/40 text-text-gold hover:border-text-gold/70"
+                                                }`}
+                                        >
+                                            {f.label}
+                                        </button>
+                                    ))}
                                 </div>
 
-                                 <Link
+                                <p className='font-heading text-3xl text-brand-yellow mb-8'>
+                                    {formats[selected].price}
+                                </p>
+
+                                <BuyNowButton priceId={formats[selected].priceId} />
+
+                                <p className='font-body text-text-light/80 text-sm mt-4'>
+                                    Ships within 3-5 business days. Confirmation email with tracking included.
+                                </p>
+                                <Link
                                     href="/shop"
-                                    className="inline-flex items-center gap-2 font-body text-text-light/50 text-sm hover:text-brand-yellow transition-colors mt-4"
+                                    className="inline-flex items-center gap-2 font-body text-text-light/50 text-sm hover:text-brand-yellow transition-colors mt-3"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                         <path fillRule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z" clipRule="evenodd" />
@@ -105,4 +118,4 @@ const EbookPage = () => {
     );
 };
 
-export default EbookPage;
+export default BookContent;
