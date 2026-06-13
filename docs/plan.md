@@ -46,8 +46,8 @@ Total fixed monthly cost: **$0**
 
 ## Pre-Flight Checklist
 
-- [x] **Domain transfer initiated (Jun 8)** — Wix → Namecheap in progress (order #204754364, $11.68). Expected completion Jun 13-15. Direct Wix → Cloudflare not supported; Namecheap is intermediary. After 60 days, Namecheap → Cloudflare optional.
-- [ ] **On transfer completion (~Jun 13-15)** — Point Namecheap nameservers to Cloudflare. Do NOT touch DNS records yet. Wix site stays live.
+- [x] **Domain transfer initiated (Jun 8)** — Wix → Namecheap in progress (order #204754364, $11.68). Auth code submitted to Namecheap. Awaiting release from Wix (~Jun 13–15). Direct Wix → Cloudflare not supported; Namecheap is intermediary.
+- [ ] **On transfer completion** — Point Namecheap nameservers to Cloudflare. Do NOT touch DNS records yet. Wix site stays live.
 - [ ] **Cancel Wix Premium before Jun 27** — Wix Business plan renews Jun 27 (~$35). New site must be live and DNS flipped to Vercel before then.
 - [ ] **Resend domain verification** — add Resend's DNS records to Cloudflare so emails send from `@rethinkingbroken.com`. Do early — DNS propagation takes time.
 - [x] **Stripe account** — fresh account created (separate from old Wix-linked account). 4 products + shipping rate in test mode, all Price IDs in `.env.local` and Vercel env vars. Two webhook endpoints registered: local CLI + Vercel Production.
@@ -88,9 +88,9 @@ Total fixed monthly cost: **$0**
 8. Cloudflare R2 — private bucket created, both files uploaded, `/api/download` built and tested. Token validation, expiry check, presigned URL generation (15 min), and `attachment` download confirmed working.
 9. Resend — `lib/email.ts` built and tested. `sendDownloadEmail` (digital) and `sendShippingNotification` (physical) wired into webhook handler. Currently sending from `onboarding@resend.dev` — swap to `orders@rethinkingbroken.com` after domain verified in Resend.
 10. Thank-you page — `/thank-you?session_id=...` and `/api/order` built and tested. Order summary, conditional download button (digital), shipping address block (physical). Polling handles Stripe redirect/webhook race condition. 307 redirect from `/api/download` to R2 confirmed working end-to-end.
+11. Admin panel — `proxy.ts` protects `/admin` routes. `/admin/login` password gate. `/admin` shows all orders by default, filterable by email. Shipping address visible for physical orders. Resend Download button generates fresh token + fires `sendDownloadEmail` for digital orders.
 
 ### 🔲 Up Next
-11. `/admin` route with order lookup and resend-link capability
 12. Newsletter Signup API route (Resend audience)
 13. Per-page SEO metadata + `next-sitemap`
 14. Final end-to-end test in Stripe test mode
