@@ -19,16 +19,16 @@ const Nav = () => {
         >
             {/* Left: page links */}
             <div className="flex items-center gap-8 border-b border-[#a0785a] pb-1">
-                <Link href="/" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
+                <Link href="/" className="text-white text-md tracking-wide hover:text-brand-yellow transition-colors">
                     Home
                 </Link>
-                <Link href="/shop" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
+                <Link href="/shop" className="text-white text-md tracking-wide hover:text-brand-yellow transition-colors">
                     Shop
                 </Link>
-                <a href="/#testimonials" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
+                <a href="/#testimonials" className="text-white text-md tracking-wide hover:text-brand-yellow transition-colors">
                     Testimonials
                 </a>
-                <a href="/#contact" className="text-white text-sm tracking-wide hover:text-brand-yellow transition-colors">
+                <a href="/#contact" className="text-white text-md tracking-wide hover:text-brand-yellow transition-colors">
                     Contact
                 </a>
             </div>
