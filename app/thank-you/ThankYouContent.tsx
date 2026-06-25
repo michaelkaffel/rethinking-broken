@@ -172,7 +172,7 @@ const ThankYouContent = () => {
                             {order!.shippingAddress.postal_code}
                         </address>
                         <p className='font-lato text-xs text-text-muted mt-3'>
-                            Estimated delivery: 3—5 business days via USPS Media Mail
+                            Estimated shipping date: 3—5 business days via USPS Media Mail
                         </p>
                     </div>
                 )}
