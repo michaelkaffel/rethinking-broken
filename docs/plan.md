@@ -46,16 +46,17 @@ Total fixed monthly cost: **$0**
 
 ## Pre-Flight Checklist
 
-- [x] **Domain transfer initiated (Jun 8)** — Wix → Namecheap in progress (order #204754364, $11.68). Auth code submitted to Namecheap. Awaiting release from Wix (~Jun 13–15). Direct Wix → Cloudflare not supported; Namecheap is intermediary.
-- [ ] **On transfer completion** — Point Namecheap nameservers to Cloudflare. Do NOT touch DNS records yet. Wix site stays live.
-- [ ] **Cancel Wix Premium before Jun 27** — Wix Business plan renews Jun 27 (~$35). New site must be live and DNS flipped to Vercel before then.
-- [ ] **Resend domain verification** — add Resend's DNS records to Cloudflare so emails send from `@rethinkingbroken.com`. Do early — DNS propagation takes time.
-- [x] **Stripe account** — fresh account created (separate from old Wix-linked account). 4 products + shipping rate in test mode, all Price IDs in `.env.local` and Vercel env vars. Two webhook endpoints registered: local CLI + Vercel Production.
-- [x] **Stripe CLI** — installed, confirmed working locally.
+- [x] **Domain transfer completed** — Wix → Namecheap confirmed active, expiry Dec 2027.
+- [x] **Namecheap nameservers pointed to Cloudflare** — Updated to `jule.ns.cloudflare.com` / `tosana.ns.cloudflare.com`. Zone activated under Down by the River Development Cloudflare org. Wix A records and `www` CNAME preserved as DNS-only during transition.
+- [ ] **Cancel Wix Premium before ~Jul 16** — Wix charges 14 days before the monthly renewal date (artifact of switching from yearly to monthly billing). New site must be live and DNS flipped to Vercel before then.
+- [x] **Resend domain verification** — `rethinkingbroken.com` verified in Resend (us-east-1) via Cloudflare Domain Connect one-click auth. 3 DNS records scoped to `send` subdomain (MX, DKIM TXT, SPF TXT). Verified in ~3 minutes. Ready to send from `orders@rethinkingbroken.com`.
+- [x] **Cloudflare Email Routing configured** — `orders@rethinkingbroken.com` forwarding to `owlchrysalismedicine@gmail.com`. **Pending: Owl must click the Cloudflare destination verification email to activate forwarding.**
+- [x] **Stripe account** — Fresh account created (separate from old Wix-linked account). 4 products + shipping rate in test mode, all Price IDs in `.env.local` and Vercel env vars. Two webhook endpoints registered: local CLI + Vercel Production.
+- [x] **Stripe CLI** — Installed, confirmed working locally.
 - [x] **Cloudflare R2 bucket** — `rethinking-broken-files` created (private). Both files uploaded: `rethinking-broken-ebook.pdf` (2.65MB) and `rethinking-broken-audiobook.zip` (866MB). API token created with Object Read & Write on this bucket.
-- [x] **Supabase project** — created under "Down by the River Development" org. Schema run. `orders` starts at #11000.
-- [x] **Phone number** — decided: Stripe Checkout will NOT collect phone number.
-- [ ] **Tax awareness** — digital goods have sales tax obligations in some US states. Stripe Tax can automate this but costs extra. Be aware as volume grows.
+- [x] **Supabase project** — Created under "Down by the River Development" org. Schema run. `orders` starts at #11000.
+- [x] **Phone number** — Decided: Stripe Checkout will NOT collect phone number.
+- [ ] **Tax awareness** — Digital goods have sales tax obligations in some US states. Stripe Tax can automate this but costs extra. Be aware as volume grows.
 
 ---
 
@@ -79,20 +80,32 @@ Total fixed monthly cost: **$0**
 
 ### ✅ Completed
 1. Next.js project scaffold + GitHub + Vercel deploy
-2. Home page — all sections built (Hero, Welcome, Testimonials, MoreFromAuthor, UpcomingEvents, NewsletterSignup, Contact, Footer)
+2. Home page — all sections built (Hero, Welcome, Testimonials, MoreFromAuthor, UpcomingEvents, NewsletterSignup, Contact, Footer). Testimonials rebuilt as a full carousel component (`components/Testimonials.tsx`) — 11 reviews (10 Amazon verified purchase + 1 Patreon member), auto-advance every 6 seconds (pauses on hover), prev/next SVG buttons, dot indicators, fixed container height to prevent layout shift from longer reviews.
 3. Shop page — product grid with full-bleed banner, linked product cards
 4. Product pages — `/shop/book` (with format toggle), `/shop/ebook`, `/shop/audiobook`
 5. Shared components — Nav (sticky, scroll shadow, social icons hidden on mobile), Footer (privacy modal), BuyNowButton
 6. Stripe — 4 products + shipping rate in dashboard, Price IDs wired to product pages, `/api/checkout` built and tested. Physical products collect US shipping address + $4.99 Media Mail flat rate.
 7. Supabase — schema run (`orders` + `download_tokens`), `/api/webhooks/stripe` built and tested. Orders confirmed landing in DB on both local and deployed site. Download tokens generated for digital products.
 8. Cloudflare R2 — private bucket created, both files uploaded, `/api/download` built and tested. Token validation, expiry check, presigned URL generation (15 min), and `attachment` download confirmed working.
-9. Resend — `lib/email.ts` built and tested. `sendDownloadEmail` (digital) and `sendShippingNotification` (physical) wired into webhook handler. Currently sending from `onboarding@resend.dev` — swap to `orders@rethinkingbroken.com` after domain verified in Resend.
+9. Resend — `lib/email.ts` built and tested. `sendDownloadEmail` (digital) and `sendShippingNotification` (physical) wired into webhook handler. Domain verified — ready to send from `orders@rethinkingbroken.com`.
 10. Thank-you page — `/thank-you?session_id=...` and `/api/order` built and tested. Order summary, conditional download button (digital), shipping address block (physical). Polling handles Stripe redirect/webhook race condition. 307 redirect from `/api/download` to R2 confirmed working end-to-end.
 11. Admin panel — `proxy.ts` protects `/admin` routes. `/admin/login` password gate. `/admin` shows all orders by default, filterable by email. Shipping address visible for physical orders. Resend Download button generates fresh token + fires `sendDownloadEmail` for digital orders.
 12. Newsletter signup — `app/api/newsletter/route.ts` built and tested. Accepts first name, last name, email. Server-side sanitization via `lib/sanitize.ts` (`sanitizeEmail` + `sanitizeName`). Adds contact to Resend audience via SDK. Confirmed working end-to-end — contacts landing in Resend Audience dashboard.
-13. SEO metadata + sitemap — per-page `metadata` exports on all public pages. `app/sitemap.ts` + `app/robots.ts` (built-in Next.js, no npm package). noindex on `/thank-you` and `/admin/*` via `app/admin/layout.tsx`. OG image at `public/og-image.png`. `/shop/book` split into server wrapper (`page.tsx`) + `components/BookContent.tsx` (client) to allow metadata export.
+13. SEO metadata + sitemap — per-page `metadata` exports on all public pages. `app/sitemap.ts` + `app/robots.ts` (built-in Next.js, no npm package). noindex on `/thank-you` and `/admin/*` via `app/admin/layout.tsx`. OG image at `public/og-image.png`. `/shop/book` split into server wrapper (`page.tsx`) + `components/BookContent.tsx` (client) to allow metadata export. Favicon package generated via favicon.io and wired into root layout metadata. Supabase RLS enabled on both `orders` and `download_tokens` tables.
+
+### ⚠️ Pre-Launch Blockers (must complete before Step 14)
+- [ ] **Rename `middleware.ts` → `proxy.ts`** — Next.js 16 convention. Admin panel will not work without this.
+- [ ] **Clean Supabase test data** — Delete `download_tokens` first, then `orders` (FK constraint order). Then run `ALTER TABLE orders ALTER COLUMN order_number RESTART WITH 11000` in SQL Editor to reset the sequence.
+- [ ] **Update `RESEND_FROM_EMAIL`** — Set to `orders@rethinkingbroken.com` in both `.env.local` and Vercel env vars. Domain is verified; this is ready to flip.
+- [ ] **Update `NEXT_PUBLIC_SITE_URL`** — Set to `https://rethinkingbroken.com` in Vercel env vars.
+- [ ] **Redeploy** after env var updates.
+- [ ] **Owl clicks Cloudflare verification email** — Required to activate `orders@rethinkingbroken.com` forwarding to his Gmail.
 
 ### 🔲 Up Next
-14. Final end-to-end test in Stripe test mode
-15. SEO audit: crawl new site vs. old
-16. DNS cutover → submit sitemap → monitor → cancel Wix
+14. Final end-to-end test in Stripe test mode — real email delivery, full purchase flow for all 4 product types
+15. SEO audit: crawl new site with Screaming Frog vs. old Wix site
+16. DNS cutover to Vercel → submit sitemap → monitor → cancel Wix
+
+### 🔲 Post-Launch
+- Domain registration transfer from Namecheap to Cloudflare registrar — available mid-August 2026 (ICANN 60-day lock after Wix → Namecheap transfer). Optional since Cloudflare already manages DNS.
+- npm update (deferred from pre-launch; `npm` 10.9.2 → 11.17.0 and other deps)
