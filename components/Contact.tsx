@@ -24,7 +24,8 @@ const Contact = () => {
                 <div className='flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 mb-10 font-body text-text-light/60'>
                     <a
                         href='mailto:owlchrysalismedicine@gmail.com'
-                        className='hover:text-brand-yellow transition-colors'
+                        // className='hover:text-brand-yellow transition-colors'
+                        className='px-8 py-3 bg-brand-yellow text-black font-heading text-sm tracking-widest hover:opacity-90 transition-opacity'
                     >
                         Contact via email
                     </a>
@@ -33,7 +34,8 @@ const Contact = () => {
                         href='https://owlchrysalismedicine.com'
                         target='_blank'
                         rel='noopener noreferrer'
-                        className='hover:text-brand-yellow transition-colors'
+                        // className='hover:text-brand-yellow transition-colors'
+                        className='px-8 py-3 bg-brand-yellow text-black font-heading text-sm tracking-widest hover:opacity-90 transition-opacity'
                     >
                         Other Offerings
                     </a>
