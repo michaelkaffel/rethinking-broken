@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     },
 };
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_MEASURMENT_ID;
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const RootLayout = ({
     children,
@@ -58,7 +58,7 @@ const RootLayout = ({
                         <Script id="google-analytics" strategy="afterInteractive">
                             {`
                                 window.dataLayer = window.dataLayer || [];
-                                funtion gtag(){dataLayer.push(arguments);}
+                                function gtag(){dataLayer.push(arguments);}
                                 gtag('js', new Date());
                                 gtag('config', '${GA_ID}');
                             `}
